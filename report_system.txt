@@ -1,33 +1,28 @@
 EV Charging Station System - System Summary Report
-Generated At : 2026-10-07 09:51:49 (+07:00)
+Generated At : 2026-10-07 09:58:38 (+07:00)
 App Version  : 1.0
 Endianness   : Little-Endian
 Encoding     : UTF-8 (fixed-length) (report file uses UTF-8)
 Data Dir     : .
-Purpose      : ตรวจสอบสถานะ Binary files และความสอดคล้องของ index กับ log
-Source Files : charge_points.dat, charge_points.log, index.dat
+Purpose      : ตรวจสอบสถานะ Binary files หลักและความสัมพันธ์ระหว่างข้อมูลหัวชาร์จกับ audit log
+Source Files : charge_points.dat, charge_points.log
 
 System File Status
 --------------------------------------------------------------
-+-------------------+-------------+-------+--------+---------------------------------+
-| File / Check      | Record size | Count | Status | Meaning                         |
-+-------------------+-------------+-------+--------+---------------------------------+
-| charge_points.dat | 82 bytes    | 55    | PASS   | Primary charging-point data     |
-| charge_points.log | 24 bytes    | 56    | PASS   | Audit/history events            |
-| index.dat         | 8 bytes     | 55    | PASS   | point_id -> latest log sequence |
-| Index vs Log      | -           | 0     | PASS   | Consistency check               |
-+-------------------+-------------+-------+--------+---------------------------------+
++-------------------+-------------+-------+--------+-------------------------------+
+| File / Check      | Record size | Count | Status | Meaning                       |
++-------------------+-------------+-------+--------+-------------------------------+
+| charge_points.dat | 82 bytes    | 55    | PASS   | Primary charging-point data   |
+| charge_points.log | 24 bytes    | 56    | PASS   | Audit/history events          |
+| Data vs Log       | -           | 0     | PASS   | Point IDs with no log history |
++-------------------+-------------+-------+--------+-------------------------------+
 
 Summary
 
 - charge_points.dat records : 55
 - charge_points.log records : 56
-- index.dat records : 55
-- Index/log mismatches : 0
-- Index-only point IDs : 0
-- Log-only point IDs : 0
-- Total consistency differences : 0
+- Point IDs without log history : 0
 - Binary file validation : PASS
-- Index/log validation : PASS
+- Data/log validation : PASS
 - Overall system status : PASS
-- Source files : charge_points.dat, charge_points.log, index.dat
+- Source files : charge_points.dat, charge_points.log

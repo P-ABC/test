@@ -1,36 +1,35 @@
 EV Charging Station System - Charging Statistics Summary Report
-Generated At : 2026-10-07 09:51:49 (+07:00)
+Generated At : 2026-10-07 09:58:38 (+07:00)
 App Version  : 1.0
 Endianness   : Little-Endian
 Encoding     : UTF-8 (fixed-length) (report file uses UTF-8)
 Data Dir     : .
 Purpose      : สรุปสถิติราคา กำลังไฟ ประเภทหัวต่อ และกิจกรรมของระบบ
-Source Files : charge_points.dat, charge_points.log, index.dat
+Source Files : charge_points.dat, charge_points.log
 
 Statistics
 --------------------------------------------------------------
-+------------------------------+-------+-------------------+
-| Metric                       | Value | Source file       |
-+------------------------------+-------+-------------------+
-| Active charging points       | 51    | charge_points.dat |
-| Minimum price (THB/kWh)      | 3.50  | charge_points.dat |
-| Maximum price (THB/kWh)      | 15.50 | charge_points.dat |
-| Average price (THB/kWh)      | 7.03  | charge_points.dat |
-| Minimum power (kW)           | 3.7   | charge_points.dat |
-| Maximum power (kW)           | 350.0 | charge_points.dat |
-| Average power (kW)           | 83.3  | charge_points.dat |
-| CCS2 count                   | 14    | charge_points.dat |
-| Type2 count                  | 13    | charge_points.dat |
-| CHAdeMO count                | 12    | charge_points.dat |
-| GB-T count                   | 12    | charge_points.dat |
-| ADD events                   | 56    | charge_points.log |
-| UPDATE events                | 0     | charge_points.log |
-| DELETE events                | 0     | charge_points.log |
-| VIEW events                  | 0     | charge_points.log |
-| Total log events             | 56    | charge_points.log |
-| Index records                | 55    | index.dat         |
-| Recent events found in index | 5/5   | index.dat         |
-+------------------------------+-------+-------------------+
++-------------------------+-------+-------------------+
+| Metric                  | Value | Source file       |
++-------------------------+-------+-------------------+
+| Active charging points  | 51    | charge_points.dat |
+| Minimum price (THB/kWh) | 3.50  | charge_points.dat |
+| Maximum price (THB/kWh) | 15.50 | charge_points.dat |
+| Average price (THB/kWh) | 7.03  | charge_points.dat |
+| Minimum power (kW)      | 3.7   | charge_points.dat |
+| Maximum power (kW)      | 350.0 | charge_points.dat |
+| Average power (kW)      | 83.3  | charge_points.dat |
+| CCS2 count              | 14    | charge_points.dat |
+| Type2 count             | 13    | charge_points.dat |
+| CHAdeMO count           | 12    | charge_points.dat |
+| GB-T count              | 12    | charge_points.dat |
+| ADD events              | 56    | charge_points.log |
+| UPDATE events           | 0     | charge_points.log |
+| DELETE events           | 0     | charge_points.log |
+| VIEW events             | 0     | charge_points.log |
+| Total log events        | 56    | charge_points.log |
+| Recent log events       | 5     | charge_points.log |
++-------------------------+-------+-------------------+
 
 Summary
 
@@ -40,8 +39,7 @@ Summary
 - Most common connector : CCS2
 - Total connector records : 51
 - Total log events : 56
-- Total index records : 55
-- Recent events in index : 5/5
+- Recent log events : 5
 - Binary files valid : PASS
 - Statistics consistency : PASS
-- Source files : charge_points.dat, charge_points.log, index.dat
+- Source files : charge_points.dat, charge_points.log

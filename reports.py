@@ -1,12 +1,12 @@
 """reports.py - สร้างรายงาน .txt จำนวน 3 รายงานจากข้อมูล Binary
 
 โครงสร้างของรายงานทุกไฟล์:
-1) DETAILS   - อธิบายว่ารายงานนี้ทำอะไร / ตารางมีอะไร / ใช้ไฟล์ใด
+1) HEADER    - รายละเอียด/วัตถุประสงค์/แหล่งข้อมูล
 2) TABLE     - ตารางหลักของรายงาน
 3) SUMMARY   - สรุปผลจากข้อมูลท้ายรายงาน
 
-รายงานทั้งหมดใช้ข้อมูลจากอย่างน้อย 2 ไฟล์ และในเวอร์ชันนี้อ้างอิง
-charge_points.dat, charge_points.log และ index.dat เพื่อให้ตรวจสอบที่มาได้ชัดเจน
+รายงานทุกไฟล์ใช้ข้อมูลจากอย่างน้อย 2 Binary files คือ
+charge_points.dat และ charge_points.log
 """
 
 from __future__ import annotations
@@ -40,7 +40,6 @@ ALL_REPORT_NAMES = (
 
 SOURCE_POINT_FILE = models.DATA_FILE_NAME      # charge_points.dat
 SOURCE_LOG_FILE = models.LOG_FILE_NAME         # charge_points.log
-SOURCE_INDEX_FILE = models.INDEX_FILE_NAME     # index.dat
 
 MAIN_TABLE_MAX_WIDTH = 150
 MAIN_TABLE_LOCATION_WIDTH = 32
@@ -151,8 +150,7 @@ def build_report_points(
     """รายงานหัวชาร์จรายหัว
 
     ตารางหลักใช้ charge_points.dat เป็นข้อมูลหลัก และเพิ่ม Last Operation
-    จาก charge_points.log กับ Log Seq จาก index.dat เพื่อให้เห็นการใช้ข้อมูล
-    จากหลาย Binary files อย่างชัดเจนในตารางเดียว
+    จาก charge_points.log เพื่อให้รายงานใช้ข้อมูลจาก 2 Binary files อย่างชัดเจน
     """
     summary = compute_summary(points)
 
@@ -165,7 +163,7 @@ def build_report_points(
         data_dir,
         "Charging Point Summary",
         "สรุปข้อมูลหัวชาร์จ สถานะการจอง และเหตุการณ์ล่าสุด",
-        [SOURCE_POINT_FILE, SOURCE_LOG_FILE, SOURCE_INDEX_FILE],
+        [SOURCE_POINT_FILE, SOURCE_LOG_FILE],
     )
     lines.append("")
 
@@ -182,10 +180,9 @@ def build_report_points(
             ("Status", "สถานะปัจจุบัน", SOURCE_POINT_FILE),
             ("Booked", "สถานะการจอง", SOURCE_POINT_FILE),
             ("Last Operation", "เหตุการณ์ล่าสุด", SOURCE_LOG_FILE),
-            ("Log Seq", "ลำดับ log ล่าสุด", SOURCE_INDEX_FILE),
             ("Updated", "เวลาที่แก้ไขล่าสุด", SOURCE_POINT_FILE),
         ],
-        [SOURCE_POINT_FILE, SOURCE_LOG_FILE, SOURCE_INDEX_FILE],
+        [SOURCE_POINT_FILE, SOURCE_LOG_FILE],
     ))
 
     rows = []
@@ -202,7 +199,6 @@ def build_report_points(
             )
 
         latest = latest_logs.get(point.point_id)
-        log_seq = index_map.get(point.point_id, "-")
         operation = latest.op_name if latest else "-"
 
         rows.append([
@@ -215,7 +211,6 @@ def build_report_points(
             point.status_text,
             point.booked_text,
             operation,
-            str(log_seq),
             format_timestamp(point.updated_at).replace(" (+07:00)", ""),
         ])
 
@@ -224,7 +219,7 @@ def build_report_points(
     lines.extend(render_table(
         [
             "PtID", "Station", "Location", "Plug", "Power", "Price",
-            "Status", "Booked", "Last Operation", "Log Seq", "Updated",
+            "Status", "Booked", "Last Operation", "Updated",
         ],
         rows,
         max_width=MAIN_TABLE_MAX_WIDTH,
@@ -234,11 +229,6 @@ def build_report_points(
         lines.append("")
         lines.append("Full location names:")
         lines.extend(long_locations)
-
-    # ตรวจสอบความสัมพันธ์ระหว่างข้อมูลหลักกับ index/log
-    active_ids = {p.point_id for p in points if not p.is_deleted}
-    missing_index = sorted(active_ids - set(index_map))
-    stale_index = sorted(set(index_map) - active_ids)
 
     inactive = [
         p for p in points
@@ -254,7 +244,6 @@ def build_report_points(
         summary["active"] + len(inactive) + summary["deleted"]
         == summary["total"],
         len(booked_active) + summary["available"] == summary["active"],
-        not missing_index,
     ]
 
     summary_rows = [
@@ -265,15 +254,12 @@ def build_report_points(
         ["Currently booked", str(summary["booked"])],
         ["Available now", str(summary["available"])],
         [f"Records in {SOURCE_LOG_FILE}", str(len(log_entries))],
-        [f"Records in {SOURCE_INDEX_FILE}", str(len(index_map))],
-        ["Missing active IDs in index.dat", str(len(missing_index))],
-        ["Deleted/stale IDs in index.dat", str(len(stale_index))],
         ["Binary files valid",
-         "PASS" if store_valid and log_valid and index_valid else "FAIL"],
+         "PASS" if store_valid and log_valid else "FAIL"],
         ["Report consistency",
          "PASS" if all(checks_pass) else "CHECK DATA"],
         ["Source files",
-         f"{SOURCE_POINT_FILE}, {SOURCE_LOG_FILE}, {SOURCE_INDEX_FILE}"],
+         f"{SOURCE_POINT_FILE}, {SOURCE_LOG_FILE}"],
     ]
 
     lines.append("")
@@ -326,15 +312,13 @@ def build_report_stats(
             op_counts[entry.op_code] += 1
 
     recent = list(log_entries[-RECENT_ACTIVITY_LIMIT:])
-    recent_ids_found = sum(
-        1 for entry in recent if entry.point_id in index_map
-    )
+    recent_events = len(recent)
 
     lines = _header(
         data_dir,
         "Charging Statistics Summary",
         "สรุปสถิติราคา กำลังไฟ ประเภทหัวต่อ และกิจกรรมของระบบ",
-        [SOURCE_POINT_FILE, SOURCE_LOG_FILE, SOURCE_INDEX_FILE],
+        [SOURCE_POINT_FILE, SOURCE_LOG_FILE],
     )
     lines.append("")
 
@@ -345,12 +329,11 @@ def build_report_stats(
             ("Metric", "หัวข้อของสถิติ", "charge_points.dat"),
             ("Value", "ค่าที่คำนวณได้จากข้อมูล", "charge_points.dat"),
             ("Log events", "จำนวนเหตุการณ์จาก audit log", SOURCE_LOG_FILE),
-            ("Index records", "จำนวนรายการใน index", SOURCE_INDEX_FILE),
         ],
-        [SOURCE_POINT_FILE, SOURCE_LOG_FILE, SOURCE_INDEX_FILE],
+        [SOURCE_POINT_FILE, SOURCE_LOG_FILE],
     ))
 
-    # ตารางเดียวรวมสถิติจากทั้ง 3 ไฟล์
+    # ตารางเดียวรวมสถิติจาก charge_points.dat และ charge_points.log
     stat_rows = [
         ["Active charging points", str(count), SOURCE_POINT_FILE],
         ["Minimum price (THB/kWh)", f"{min_price:.2f}", SOURCE_POINT_FILE],
@@ -368,9 +351,7 @@ def build_report_stats(
         ["DELETE events", str(op_counts[models.OP_DELETE]), SOURCE_LOG_FILE],
         ["VIEW events", str(op_counts[models.OP_VIEW]), SOURCE_LOG_FILE],
         ["Total log events", str(len(log_entries)), SOURCE_LOG_FILE],
-        ["Index records", str(len(index_map)), SOURCE_INDEX_FILE],
-        ["Recent events found in index",
-         f"{recent_ids_found}/{len(recent)}", SOURCE_INDEX_FILE],
+        ["Recent log events", str(recent_events), SOURCE_LOG_FILE],
     ]
 
     lines.append("Statistics")
@@ -387,7 +368,7 @@ def build_report_stats(
     checks = [
         connector_total == count,
         operation_total == len(log_entries),
-        recent_ids_found == len(recent),
+        recent_events == len(recent),
         average_ok,
     ]
 
@@ -405,14 +386,13 @@ def build_report_stats(
         ["Most common connector", most_common_connector],
         ["Total connector records", str(connector_total)],
         ["Total log events", str(len(log_entries))],
-        ["Total index records", str(len(index_map))],
-        ["Recent events in index", f"{recent_ids_found}/{len(recent)}"],
+        ["Recent log events", str(recent_events)],
         ["Binary files valid",
-         "PASS" if store_valid and log_valid and index_valid else "FAIL"],
+         "PASS" if store_valid and log_valid else "FAIL"],
         ["Statistics consistency",
          "PASS" if all(checks) else "CHECK DATA"],
         ["Source files",
-         f"{SOURCE_POINT_FILE}, {SOURCE_LOG_FILE}, {SOURCE_INDEX_FILE}"],
+         f"{SOURCE_POINT_FILE}, {SOURCE_LOG_FILE}"],
     ]
 
     lines.append("")
@@ -433,42 +413,34 @@ def build_report_system(
     index_valid: bool = True,
     locations: Optional[Dict[int, str]] = None,
 ) -> List[str]:
-    """รายงานสุขภาพของ Binary files และความสัมพันธ์ index/log"""
+    """รายงานสถานะของ Binary files หลัก 2 ไฟล์: data และ log
+
+    index_map/index_valid ยังรับไว้เพื่อให้เข้ากับ main.py เดิม
+    แต่จะไม่ถูกนำมาใช้หรือแสดงในรายงาน
+    """
     lines = _header(
         data_dir,
         "System Summary",
-        "ตรวจสอบสถานะ Binary files และความสอดคล้องของ index กับ log",
-        [SOURCE_POINT_FILE, SOURCE_LOG_FILE, SOURCE_INDEX_FILE],
+        "ตรวจสอบสถานะ Binary files หลักและความสัมพันธ์ระหว่างข้อมูลหัวชาร์จกับ audit log",
+        [SOURCE_POINT_FILE, SOURCE_LOG_FILE],
     )
     lines.append("")
 
     lines.extend(_table_details(
-        "Binary file and index status",
-        "ตรวจสอบสถานะของ Binary files ทั้ง 3 ไฟล์ และตรวจว่า index.dat สอดคล้องกับ log หรือไม่",
+        "Binary file status",
+        "ตรวจสอบสถานะของ charge_points.dat และ charge_points.log",
         [
-            ("File", "ชื่อ Binary file", "all source files"),
-            ("Record size", "ขนาด record ต่อรายการ", "models / Binary format"),
+            ("File", "ชื่อ Binary file", "Binary file"),
+            ("Record size", "ขนาด record ต่อรายการ", "Binary format"),
             ("Count", "จำนวน records ที่อ่านได้", "แต่ละ Binary file"),
             ("Status", "ผลตรวจสอบไฟล์", "แต่ละ Binary file"),
-            ("Index/Log consistency", "เปรียบเทียบ log_seq", "charge_points.log + index.dat"),
         ],
-        [SOURCE_POINT_FILE, SOURCE_LOG_FILE, SOURCE_INDEX_FILE],
+        [SOURCE_POINT_FILE, SOURCE_LOG_FILE],
     ))
 
-    # หา latest log sequence ต่อ point
-    latest_seq: Dict[int, int] = {}
-    for seq, entry in enumerate(log_entries):
-        latest_seq[entry.point_id] = seq
-
-    mismatch = []
-    for point_id in index_map:
-        if point_id in latest_seq and index_map[point_id] != latest_seq[point_id]:
-            mismatch.append(point_id)
-
-    index_only = sorted(set(index_map) - set(latest_seq))
-    log_only = sorted(set(latest_seq) - set(index_map))
-
-    index_log_ok = not mismatch and not index_only and not log_only
+    data_ids = {p.point_id for p in points}
+    log_ids = {entry.point_id for entry in log_entries}
+    data_without_log = sorted(data_ids - log_ids)
 
     file_rows = [
         [
@@ -486,18 +458,11 @@ def build_report_system(
             "Audit/history events",
         ],
         [
-            SOURCE_INDEX_FILE,
-            f"{models.INDEX_RECORD_SIZE} bytes",
-            str(len(index_map)),
-            "PASS" if index_valid else "INVALID",
-            "point_id -> latest log sequence",
-        ],
-        [
-            "Index vs Log",
+            "Data vs Log",
             "-",
-            str(len(mismatch) + len(index_only) + len(log_only)),
-            "PASS" if index_log_ok else "MISMATCH",
-            "Consistency check",
+            str(len(data_without_log)),
+            "PASS" if not data_without_log else "CHECK",
+            "Point IDs with no log history",
         ],
     ]
 
@@ -509,25 +474,15 @@ def build_report_system(
         max_width=MAIN_TABLE_MAX_WIDTH,
     ))
 
-    all_valid = store_valid and log_valid and index_valid
-    total_differences = len(mismatch) + len(index_only) + len(log_only)
-
+    all_valid = store_valid and log_valid
     summary_rows = [
         [f"{SOURCE_POINT_FILE} records", str(len(points))],
         [f"{SOURCE_LOG_FILE} records", str(len(log_entries))],
-        [f"{SOURCE_INDEX_FILE} records", str(len(index_map))],
-        ["Index/log mismatches", str(len(mismatch))],
-        ["Index-only point IDs", str(len(index_only))],
-        ["Log-only point IDs", str(len(log_only))],
-        ["Total consistency differences", str(total_differences)],
-        ["Binary file validation",
-         "PASS" if all_valid else "FAIL"],
-        ["Index/log validation",
-         "PASS" if index_log_ok else "CHECK DATA"],
-        ["Overall system status",
-         "PASS" if all_valid and index_log_ok else "CHECK DATA"],
-        ["Source files",
-         f"{SOURCE_POINT_FILE}, {SOURCE_LOG_FILE}, {SOURCE_INDEX_FILE}"],
+        ["Point IDs without log history", str(len(data_without_log))],
+        ["Binary file validation", "PASS" if all_valid else "FAIL"],
+        ["Data/log validation", "PASS" if not data_without_log else "CHECK DATA"],
+        ["Overall system status", "PASS" if all_valid and not data_without_log else "CHECK DATA"],
+        ["Source files", f"{SOURCE_POINT_FILE}, {SOURCE_LOG_FILE}"],
     ]
 
     lines.append("")
@@ -548,7 +503,7 @@ def generate_all_reports(
     index_valid: bool = True,
     locations: Optional[Dict[int, str]] = None,
 ) -> Dict[str, str]:
-    """สร้างรายงานทั้ง 3 เป็นไฟล์ .txt แยกกัน"""
+    """สร้างรายงานทั้ง 3 เป็นไฟล์ .txt แยกกัน โดยรายงานใช้ data + log เป็นแหล่งข้อมูลหลัก"""
     builders = (
         (REPORT_POINTS_NAME, build_report_points),
         (REPORT_STATS_NAME, build_report_stats),
