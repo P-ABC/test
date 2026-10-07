@@ -111,16 +111,28 @@ def _table_details(
 
 
 def _summary_section(rows: Sequence[Sequence[str]]) -> List[str]:
-    """สร้าง Summary แบบหัวข้อ + bullet คล้ายตัวอย่างของอาจารย์"""
-    lines = [
-        "Summary",
-        "",
-    ]
+    """สร้าง Summary ในรูปแบบตาราง"""
+    table_rows = []
+
     for row in rows:
         if len(row) >= 2:
-            lines.append(f"- {row[0]} : {row[1]}")
+            table_rows.append([row[0], row[1]])
         elif row:
-            lines.append(f"- {row[0]}")
+            table_rows.append([row[0], ""])
+
+    lines = [
+        "Summary",
+        "-" * 62,
+    ]
+
+    lines.extend(
+        render_table(
+            ["Item", "Value"],
+            table_rows,
+            max_width=MAIN_TABLE_MAX_WIDTH,
+        )
+    )
+
     return lines
 
 

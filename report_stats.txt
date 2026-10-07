@@ -1,5 +1,5 @@
 EV Charging Station System - Charging Statistics Summary Report
-Generated At : 2026-10-07 09:58:38 (+07:00)
+Generated At : 2026-10-07 10:19:02 (+07:00)
 App Version  : 1.0
 Endianness   : Little-Endian
 Encoding     : UTF-8 (fixed-length) (report file uses UTF-8)
@@ -32,14 +32,18 @@ Statistics
 +-------------------------+-------+-------------------+
 
 Summary
-
-- Active points used : 51
-- Average price (THB/kWh) : 7.03
-- Average power (kW) : 83.3
-- Most common connector : CCS2
-- Total connector records : 51
-- Total log events : 56
-- Recent log events : 5
-- Binary files valid : PASS
-- Statistics consistency : PASS
-- Source files : charge_points.dat, charge_points.log
+--------------------------------------------------------------
++-------------------------+--------------------------------------+
+| Item                    | Value                                |
++-------------------------+--------------------------------------+
+| Active points used      | 51                                   |
+| Average price (THB/kWh) | 7.03                                 |
+| Average power (kW)      | 83.3                                 |
+| Most common connector   | CCS2                                 |
+| Total connector records | 51                                   |
+| Total log events        | 56                                   |
+| Recent log events       | 5                                    |
+| Binary files valid      | PASS                                 |
+| Statistics consistency  | PASS                                 |
+| Source files            | charge_points.dat, charge_points.log |
++-------------------------+--------------------------------------+

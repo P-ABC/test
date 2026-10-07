@@ -1,5 +1,5 @@
 EV Charging Station System - Charging Point Summary Report
-Generated At : 2026-10-07 09:58:38 (+07:00)
+Generated At : 2026-10-07 10:19:02 (+07:00)
 App Version  : 1.0
 Endianness   : Little-Endian
 Encoding     : UTF-8 (fixed-length) (report file uses UTF-8)
@@ -76,14 +76,18 @@ Full location names:
   PtID 2044: Siam Paragon EV Station, New Basement Project and Parking Lot
 
 Summary
-
-- Total point records : 55
-- Active points : 51
-- Inactive points : 3
-- Deleted points : 1
-- Currently booked : 15
-- Available now : 37
-- Records in charge_points.log : 56
-- Binary files valid : PASS
-- Report consistency : PASS
-- Source files : charge_points.dat, charge_points.log
+--------------------------------------------------------------
++------------------------------+--------------------------------------+
+| Item                         | Value                                |
++------------------------------+--------------------------------------+
+| Total point records          | 55                                   |
+| Active points                | 51                                   |
+| Inactive points              | 3                                    |
+| Deleted points               | 1                                    |
+| Currently booked             | 15                                   |
+| Available now                | 37                                   |
+| Records in charge_points.log | 56                                   |
+| Binary files valid           | PASS                                 |
+| Report consistency           | PASS                                 |
+| Source files                 | charge_points.dat, charge_points.log |
++------------------------------+--------------------------------------+
